@@ -23,6 +23,19 @@ export const BookModel = {
     return result.rows[0];
   },
 
+  async getTopBooks() {
+    const query = `
+      SELECT b.title, COUNT(l.id) AS total_borrowed
+      FROM books b
+      JOIN loans l ON b.id = l.book_id
+      GROUP BY b.id, b.title
+      ORDER BY total_borrowed DESC
+      LIMIT 2
+    `;
+    const result = await pool.query(query);
+    return result.rows;
+  },
+
   async delete(id) {
     const query = 'DELETE FROM books WHERE id = $1';
     await pool.query(query, [id]);
