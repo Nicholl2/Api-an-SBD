@@ -2,26 +2,26 @@ import { pool } from '../config/db.js';
 
 export const LoanModel = {
   async createLoan(book_id, member_id, due_date) {
-    const client = await pool.connect(); [cite: 107]
+    const client = await pool.connect();
     try {
-      await client.query('BEGIN'); [cite: 107]
-      const bookCheck = await client.query('SELECT available_copies FROM books WHERE id = $1', [book_id]); [cite: 107]
+      await client.query('BEGIN');
+      const bookCheck = await client.query('SELECT available_copies FROM books WHERE id = $1', [book_id]);
       if (bookCheck.rows[0].available_copies <= 0) {
-        throw new Error('Buku sedang tidak tersedia (stok habis).'); [cite: 107]
+        throw new Error('Buku sedang tidak tersedia (stok habis).');
       }
-      await client.query('UPDATE books SET available_copies = available_copies - 1 WHERE id = $1', [book_id]); [cite: 107]
+      await client.query('UPDATE books SET available_copies = available_copies - 1 WHERE id = $1', [book_id]);
       const loanQuery = `
         INSERT INTO loans (book_id, member_id, due_date) 
         VALUES ($1, $2, $3) RETURNING *
-      `; [cite: 107]
-      const result = await client.query(loanQuery, [book_id, member_id, due_date]); [cite: 107]
-      await client.query('COMMIT'); [cite: 107]
-      return result.rows[0]; [cite: 107]
+      `;
+      const result = await client.query(loanQuery, [book_id, member_id, due_date]);
+      await client.query('COMMIT');
+      return result.rows[0];
     } catch (error) {
-      await client.query('ROLLBACK'); [cite: 107]
+      await client.query('ROLLBACK');
       throw error;
     } finally {
-      client.release(); [cite: 107]
+      client.release();
     }
   },
 
@@ -31,9 +31,9 @@ export const LoanModel = {
       FROM loans l
       JOIN books b ON l.book_id = b.id
       JOIN members m ON l.member_id = m.id
-    `; [cite: 107]
-    const result = await pool.query(query); [cite: 107]
-    return result.rows; [cite: 107]
+    `;
+    const result = await pool.query(query);
+    return result.rows;
   },
 
   // CHALLENGE 2: Logic Pengembalian Buku (Transaction)
